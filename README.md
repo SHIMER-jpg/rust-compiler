@@ -8,6 +8,6 @@
 - [ ] Compiler
 
 ### 7-12-2024
-- [ ] Lexer
+- [X] Lexer
 - [ ] Parser
 
