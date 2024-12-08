@@ -3,7 +3,7 @@ use ast::lexer::Token;
 mod ast;
 
 fn main() {
-    let input = "72 + 3 - 2";
+    let input = "(42 * 5) + 10 / (3 - 1)";
 
     let mut lexer = ast::lexer::Lexer::new(input);
     let mut tokens: Vec<Token> = Vec::new();
