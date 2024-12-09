@@ -1,30 +1,23 @@
 use crate::ast::lexer::{Lexer, Token, TokenKind};
 use crate::ast::{ASTExpression, ASTExpressionKind, ASTStatement, ASTStatementKind};
 
+use super::{ASTBinaryOperator, ASTBinaryOperatorKind};
+
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 }
 
 impl Parser {
-    pub fn new() -> Self {
+    pub fn new(tokens: Vec<Token>) -> Self {
         Self {
-            tokens: Vec::new(),
+            tokens: tokens
+                .iter()
+                .filter(|token| token.kind != TokenKind::Whitespace)
+                .map(|token| token.clone())
+                .collect(),
             current: 0,
         }
-    }
-
-    pub fn from_tokens(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0 }
-    }
-
-    pub fn from_input(input: &str) -> Self {
-        let mut lexer = Lexer::new(input);
-        let mut tokens: Vec<Token> = Vec::new();
-        while let Some(token) = lexer.next_token() {
-            tokens.push(token);
-        }
-        Self { tokens, current: 0 }
     }
 
     pub fn next_statement(&mut self) -> Option<ASTStatement> {
@@ -38,14 +31,55 @@ impl Parser {
             return None;
         }
 
-        let expr = self.parse_expression()?;
+        let expr: ASTExpression = self.parse_expression()?;
         Some(ASTStatement::new(ASTStatementKind::Expression(expr)))
     }
 
     fn parse_expression(&mut self) -> Option<ASTExpression> {
+        return self.parse_binary_expression(0);
+    }
+
+    fn parse_binary_expression(&mut self, precedence: u8) -> Option<ASTExpression> {
+        let mut left = self.parse_primary_expression()?;
+
+        while let Some(operator) = self.parse_binary_operator() {
+            self.consume()?;
+            let operator_precedence = operator.precedence();
+            if operator_precedence < precedence {
+                break;
+            }
+            let right = self.parse_binary_expression(operator_precedence)?;
+            left = ASTExpression::binary(operator, left, right);
+        }
+
+        Some(left)
+    }
+
+    fn parse_binary_operator(&mut self) -> Option<ASTBinaryOperator> {
+        let token = self.peek(0)?;
+        let kind = match token.kind {
+            TokenKind::Plus => Some(ASTBinaryOperatorKind::Plus),
+            TokenKind::Minus => Some(ASTBinaryOperatorKind::Minus),
+            TokenKind::Asterisk => Some(ASTBinaryOperatorKind::Multiply),
+            TokenKind::Slash => Some(ASTBinaryOperatorKind::Divide),
+            _ => None,
+        };
+
+        kind.map(|kind| ASTBinaryOperator::new(kind, token.clone()))
+    }
+
+    fn parse_primary_expression(&mut self) -> Option<ASTExpression> {
         let token = self.consume()?;
         match token.kind {
             TokenKind::Number(number) => Some(ASTExpression::number(number)),
+            TokenKind::LeftParen => {
+                let expr = self.parse_expression()?;
+                let right_token = self.consume()?;
+                if right_token.kind != TokenKind::RightParen {
+                    return None;
+                }
+                Some(ASTExpression::parenthesized(expr))
+            }
             _ => None,
         }
     }
