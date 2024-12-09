@@ -7,7 +7,7 @@
 - [ ] Interpreter
 - [ ] Compiler
 
-### 7-12-2024
+### 7-12-2024 - 9 - 12 -2024
 - [X] Lexer
-- [ ] Parser
+- [X] Parser
 

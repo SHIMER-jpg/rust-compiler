@@ -12,7 +12,7 @@ use crate::ast::{
 mod ast;
 
 fn main() {
-    let input = "(7 + 8) * 3";
+    let input = "(7 - 2) * (30 + 7) * 8 / 2 ";
     // let input = "(42 * 5) + 10 / (3 - 1)";
 
     let mut lexer = ast::lexer::Lexer::new(input);
