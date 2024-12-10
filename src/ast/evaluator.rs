@@ -1,5 +1,6 @@
 use crate::ast::{
-    ASTBinaryExpression, ASTBinaryOperatorKind, ASTExpression, ASTNumberExpression, ASTVisitor,
+    lexer::TextSpan, ASTBinaryExpression, ASTBinaryOperatorKind, ASTExpression,
+    ASTNumberExpression, ASTVisitor,
 };
 
 pub struct ASTEvaluator {
@@ -29,5 +30,9 @@ impl ASTVisitor for ASTEvaluator {
             ASTBinaryOperatorKind::Multiply => self.last_value = Some(left * right),
             ASTBinaryOperatorKind::Divide => self.last_value = Some(left / right),
         }
+    }
+
+    fn visit_error(&mut self, span: &TextSpan) {
+        todo!()
     }
 }

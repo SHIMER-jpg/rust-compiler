@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::ast::lexer::{TextSpan, Token, TokenKind};
 
+pub mod printer;
 pub enum DiagnosticKind {
     Error,
     Warning,
@@ -36,11 +37,6 @@ impl DiagnosticBag {
         }
     }
 
-    pub fn report(&mut self, message: String, span: TextSpan, report_type: DiagnosticKind) {
-        let diagnostic = Diagnostic::new(message, span, report_type);
-        self.diagnostics.push(diagnostic);
-    }
-
     pub fn report_error(&mut self, message: String, span: TextSpan) {
         let error = Diagnostic::new(message, span, DiagnosticKind::Error);
         self.diagnostics.push(error);
@@ -51,11 +47,17 @@ impl DiagnosticBag {
         self.diagnostics.push(warning);
     }
 
-    pub fn report_unexpected_token(&mut self, expected: &TokenKind, token: &Token, span: TextSpan) {
-        self.report(
+    pub fn report_unexpected_token(&mut self, expected: &TokenKind, token: &Token) {
+        self.report_error(
             format!("Expected: <{}>, found: <{}>", expected, token.kind),
-            span,
-            DiagnosticKind::Error,
+            token.span.clone(),
+        );
+    }
+
+    pub fn report_expected_expression(&mut self, token: &Token) {
+        self.report_error(
+            format!("Expected expression, found <{}>", token.kind),
+            token.span.clone(),
         );
     }
 }
