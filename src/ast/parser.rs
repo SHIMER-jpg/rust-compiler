@@ -1,15 +1,17 @@
 use crate::ast::lexer::{Lexer, Token, TokenKind};
 use crate::ast::{ASTExpression, ASTExpressionKind, ASTStatement, ASTStatementKind};
+use crate::diagnostics::DiagnosticsBagCell;
 
 use super::{ASTBinaryOperator, ASTBinaryOperatorKind};
 
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    diagnostics_bag: DiagnosticsBagCell,
 }
 
 impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(tokens: Vec<Token>, diagnostics_bag: DiagnosticsBagCell) -> Self {
         Self {
             tokens: tokens
                 .iter()
@@ -17,6 +19,7 @@ impl Parser {
                 .map(|token| token.clone())
                 .collect(),
             current: 0,
+            diagnostics_bag,
         }
     }
 
