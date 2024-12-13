@@ -69,9 +69,14 @@ pub trait ASTVisitor {
 
     fn visit_number_expression(&mut self, number: &ASTNumberExpression);
 
-    fn visit_binary_expression(&mut self, binary: &ASTBinaryExpression);
+    fn visit_binary_expression(&mut self, binary: &ASTBinaryExpression) {
+        self.visit_expression(&binary.left);
+        self.visit_expression(&binary.right);
+    }
 
-    fn visit_parenthesized_expression(&mut self, parenthesized: &ASTParenthesizedExpression);
+    fn visit_parenthesized_expression(&mut self, parenthesized: &ASTParenthesizedExpression) {
+        self.visit_expression(&parenthesized.expression);
+    }
 
     fn visit_error(&mut self, span: &TextSpan);
 }
@@ -109,7 +114,7 @@ impl ASTVisitor for ASTPrinter {
         self.result.push_str(&format!(
             "{}{}",
             Self::VARIABLE_COLOR.fg_str(),
-            expr.identifier()
+            expr.identifier().span.literal
         ));
     }
 
@@ -181,8 +186,8 @@ pub enum ASTStatementKind {
 }
 
 pub struct ASTLetStatement {
-    identifier: Token,
-    initializer: ASTExpression,
+    pub identifier: Token,
+    pub initializer: ASTExpression,
 }
 
 pub struct ASTStatement {
@@ -216,12 +221,12 @@ pub enum ASTExpressionKind {
 }
 
 pub struct ASTVariableExpression {
-    token: Token,
+    pub token: Token,
 }
 
 impl ASTVariableExpression {
-    pub fn identifier(&self) -> &str {
-        &self.token.span.literal
+    pub fn identifier(&self) -> &Token {
+        &self.token
     }
 }
 
