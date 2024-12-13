@@ -12,6 +12,10 @@ pub enum TokenKind {
     EOF,
     Bad,
     Whitespace,
+    // First variables
+    Let,
+    Identifier,
+    Equals,
 }
 
 impl Display for TokenKind {
@@ -27,6 +31,9 @@ impl Display for TokenKind {
             TokenKind::EOF => write!(f, "EOF"),
             TokenKind::Bad => write!(f, "Bad"),
             TokenKind::Whitespace => write!(f, "Whitespace"),
+            TokenKind::Let => write!(f, "let"),
+            TokenKind::Identifier => write!(f, "Identifier"),
+            TokenKind::Equals => write!(f, "="),
         }
     }
 }
@@ -81,6 +88,14 @@ impl<'a> Lexer<'a> {
         self.input.chars().nth(self.current_pos)
     }
 
+    fn is_identifier_start(c: &char) -> bool {
+        c.is_alphabetic()
+    }
+
+    fn is_whitespace(c: &char) -> bool {
+        c.is_whitespace()
+    }
+
     fn is_number_start(c: &char) -> bool {
         c.is_digit(10)
     }
@@ -106,9 +121,16 @@ impl<'a> Lexer<'a> {
             if Self::is_number_start(&c) {
                 let number: i64 = self.consume_number();
                 kind = TokenKind::Number(number);
-            } else if c.is_whitespace() {
+            } else if Self::is_whitespace(&c) {
                 self.consume();
                 kind = TokenKind::Whitespace;
+            } else if Self::is_identifier_start(&c) {
+                let identifier = self.consume_identifier();
+                kind = match identifier.as_str() {
+                    "let" => TokenKind::Let,
+                    "=" => TokenKind::Equals,
+                    _ => TokenKind::Identifier,
+                }
             } else {
                 kind = self.consume_punctuation();
             }
@@ -128,6 +150,19 @@ impl<'a> Lexer<'a> {
         self.current_pos += 1;
 
         c
+    }
+
+    fn consume_identifier(&mut self) -> String {
+        let mut identifier = String::new();
+        while let Some(c) = self.current_char() {
+            if Self::is_identifier_start(&c) {
+                self.consume().unwrap();
+                identifier.push(c);
+            } else {
+                break;
+            }
+        }
+        identifier
     }
 
     fn consume_number(&mut self) -> i64 {
@@ -152,6 +187,7 @@ impl<'a> Lexer<'a> {
             '*' => TokenKind::Asterisk,
             '(' => TokenKind::LeftParen,
             ')' => TokenKind::RightParen,
+            '=' => TokenKind::Equals,
             _ => TokenKind::Bad,
         }
     }

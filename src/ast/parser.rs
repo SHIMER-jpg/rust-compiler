@@ -57,8 +57,23 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> ASTStatement {
+        match self.current().kind {
+            TokenKind::Let => self.parse_let_statement(),
+            _ => self.parse_expression_statement(),
+        }
+    }
+
+    fn parse_expression_statement(&mut self) -> ASTStatement {
         let expr: ASTExpression = self.parse_expression();
         ASTStatement::new(ASTStatementKind::Expression(expr))
+    }
+
+    fn parse_let_statement(&mut self) -> ASTStatement {
+        self.consume_and_check(TokenKind::Let);
+        let identifier = self.consume_and_check(TokenKind::Identifier).clone();
+        self.consume_and_check(TokenKind::Equals);
+        let expression: ASTExpression = self.parse_expression();
+        ASTStatement::let_statement(identifier, expression)
     }
 
     fn parse_expression(&mut self) -> ASTExpression {
@@ -103,6 +118,7 @@ impl Parser {
                 self.consume_and_check(TokenKind::RightParen);
                 ASTExpression::parenthesized(expr)
             }
+            TokenKind::Identifier => ASTExpression::identifier(token.clone()),
             _ => {
                 self.diagnostics_bag
                     .borrow_mut()

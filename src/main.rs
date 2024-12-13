@@ -18,9 +18,15 @@ mod diagnostics;
 mod text;
 
 fn main() {
-    let input = "(7 - 2) * (30 + 7) * 8 A 2 ";
+    // let input = "7 + 8 * 9";
+    let input = "
+        let a = 10 + 30
+        let b = 20
+        let d = 10
+        let d = (a + b) * d
+    ";
+
     let text = SourceText::new(input.to_string());
-    // let input = "(42 * 5) + 10 / (3 - 1)";
 
     //LEXER
     let mut lexer = ast::lexer::Lexer::new(input);
